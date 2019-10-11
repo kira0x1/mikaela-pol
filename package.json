@@ -1,0 +1,19 @@
+{
+  "name": "mikaela-pol",
+  "version": "1.0.0",
+  "main": "out/main.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "repository": "https://github.com/lil-kira/mikaela-pol.git",
+  "author": "lil-kira <lil.kira@outlook.com>",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^11.5.1",
+    "mongoose": "^5.7.4"
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.5.20",
+    "@types/node": "^12.7.11"
+  }
+}
