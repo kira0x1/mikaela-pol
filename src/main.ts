@@ -1,6 +1,6 @@
 import { Client } from 'discord.js';
 import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
-import { prefix, token } from './Config';
+import { prefix, token } from './config';
 import { dbinit as LoadDB } from './db/dbSetup';
 
 const client = new Client();

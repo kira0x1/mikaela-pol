@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var discord_js_1 = require("discord.js");
 var CommandUtil_1 = require("./util/CommandUtil");
-var Config_1 = require("./Config");
+var config_1 = require("./config");
 var dbSetup_1 = require("./db/dbSetup");
 var client = new discord_js_1.Client();
 function init() {
@@ -50,7 +50,7 @@ function init() {
                     return [4 /*yield*/, CommandUtil_1.LoadCommands()];
                 case 2:
                     _a.sent();
-                    client.login(Config_1.token);
+                    client.login(config_1.token);
                     return [2 /*return*/];
             }
         });
@@ -60,11 +60,11 @@ client.on('ready', function () {
     console.log(client.user.username + " online!");
 });
 client.on('message', function (message) {
-    if (message.author.bot || !message.content.startsWith(Config_1.prefix))
+    if (message.author.bot || !message.content.startsWith(config_1.prefix))
         return;
-    var args = message.content.slice(Config_1.prefix.length).split(/ +/);
+    var args = message.content.slice(config_1.prefix.length).split(/ +/);
     var commandName = (args.shift() || '').toLowerCase();
-    if (commandName === '' || commandName.startsWith(Config_1.prefix))
+    if (commandName === '' || commandName.startsWith(config_1.prefix))
         return;
     CommandUtil_1.ExecuteCommand(commandName, message, args);
 });
