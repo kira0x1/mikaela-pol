@@ -103,6 +103,9 @@ function LogMessage(message) {
         .addBlankField(true)
         .setFooter("Timestamp: " + msglog.timestamp)
         .setColor("0x#c90c58");
+    if (!(function (logMessageChannel) { return logMessageChannel.type === 'text'; })(logMessageChannel))
+        return;
     logMessageChannel.send(embed);
 }
+//if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
 init();

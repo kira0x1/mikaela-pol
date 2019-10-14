@@ -13,4 +13,4 @@ var Command = /** @class */ (function () {
     }
     return Command;
 }());
-exports.Command = Command;
+exports.default = Command;

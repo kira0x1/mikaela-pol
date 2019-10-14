@@ -1,14 +1,15 @@
-import { Client, Message, Guild, GuildChannel, RichEmbed, TextChannel } from 'discord.js';
+import { Client, Message, Guild, RichEmbed, TextChannel, GuildChannel } from 'discord.js';
 import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
 import { prefix, token, archiveGuildId, testingChannelId, logMessagesChannelId } from './config';
 import { dbinit as LoadDB } from './db/database';
 import chalk from 'chalk'
+import IMessageLog from './classes/IMessageLog';
 
 const client = new Client();
 
 var logGuild: Guild
-var testingChannel: TextChannel
-var logMessageChannel: TextChannel
+var testingChannel: TextChannel | GuildChannel
+var logMessageChannel: TextChannel | GuildChannel
 
 async function init() {
     // await LoadDB();
@@ -20,6 +21,7 @@ client.on('ready', () => {
     console.log(chalk.bgCyan.bold(`${client.user.username} online!`))
 
     logGuild = client.guilds.get(archiveGuildId);
+
     testingChannel = logGuild.channels.get(testingChannelId)
     logMessageChannel = logGuild.channels.get(logMessagesChannelId)
 })
@@ -63,24 +65,10 @@ function LogMessage(message: Message) {
         .setFooter(`Timestamp: ${msglog.timestamp}`)
         .setColor("0x#c90c58")
 
+    if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
     logMessageChannel.send(embed)
 }
 
-interface IMessageLog {
-    username: string,
-    nickname: string,
-    tag: string,
-    id: string,
-    content: string,
-    timestamp: string,
-
-    channel: IChannel
-}
-
-interface IChannel {
-    name: string,
-    id: string
-}
-
+//if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
 
 init();
