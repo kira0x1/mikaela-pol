@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { Command } from '../classes/command';
+import Command from '../classes/command';
 
 export const command: Command = {
     name: 'test',

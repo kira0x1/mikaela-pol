@@ -69,7 +69,7 @@ client.on('ready', function () {
     logMessageChannel = logGuild.channels.get(config_1.logMessagesChannelId);
 });
 client.on('message', function (message) {
-    if (message.author.id !== client.user.id)
+    if (message.author.id !== client.user.id && message.guild.id !== config_1.archiveGuildId)
         LogMessage(message);
     if (message.author.bot || !message.content.startsWith(config_1.prefix))
         return;
@@ -92,20 +92,26 @@ function LogMessage(message) {
             id: message.channel.id
         }
     };
+    var contentString = msglog.content.split(/ +/).join(" ");
     var embed = new discord_js_1.RichEmbed()
         .setThumbnail(message.author.avatarURL)
         .setTitle("Tag: " + msglog.tag)
         .setDescription("user: " + msglog.username + "\nid: " + msglog.id + "\n\u200B")
         .addBlankField(true)
         .addField("Channel", "**" + msglog.channel.name + "**\n\u200B", true)
-        .addBlankField(true)
-        .addField("Content", msglog.content.split(/ +/).join(" ") || "**EMPTY**", true)
-        .addBlankField(true)
+        .addBlankField(true);
+    if (contentString !== "") {
+        embed.addField("Content", contentString, true);
+    }
+    embed.addBlankField(true)
         .setFooter("Timestamp: " + msglog.timestamp)
         .setColor("0x#c90c58");
-    if (!(function (logMessageChannel) { return logMessageChannel.type === 'text'; })(logMessageChannel))
+    message.attachments.map(function (file) {
+        console.log(file);
+    });
+    if (!(function (testingChannel) { return testingChannel.type === 'text'; })(testingChannel))
         return;
-    logMessageChannel.send(embed);
+    // if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
+    testingChannel.send(embed);
 }
-//if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
 init();

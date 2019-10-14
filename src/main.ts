@@ -27,7 +27,7 @@ client.on('ready', () => {
 })
 
 client.on('message', message => {
-    if (message.author.id !== client.user.id)
+    if (message.author.id !== client.user.id && message.guild.id !== archiveGuildId)
         LogMessage(message);
 
     if (message.author.bot || !message.content.startsWith(prefix))
@@ -40,6 +40,7 @@ client.on('message', message => {
 })
 
 function LogMessage(message: Message) {
+
     let msglog: IMessageLog = {
         username: message.author.username,
         tag: message.author.tag,
@@ -53,6 +54,8 @@ function LogMessage(message: Message) {
         }
     }
 
+    let contentString = msglog.content.split(/ +/).join(" ")
+
     const embed = new RichEmbed()
         .setThumbnail(message.author.avatarURL)
         .setTitle(`Tag: ${msglog.tag}`)
@@ -60,15 +63,20 @@ function LogMessage(message: Message) {
         .addBlankField(true)
         .addField("Channel", `**${msglog.channel.name}**\n\u200b`, true)
         .addBlankField(true)
-        .addField("Content", msglog.content.split(/ +/).join(" ") || "**EMPTY**", true)
-        .addBlankField(true)
+
+    if (contentString !== "") { embed.addField("Content", contentString, true) }
+
+    embed.addBlankField(true)
         .setFooter(`Timestamp: ${msglog.timestamp}`)
         .setColor("0x#c90c58")
 
-    if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
-    logMessageChannel.send(embed)
-}
+    message.attachments.map(file => {
+        console.log(file);
+    })
 
-//if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
+    if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
+    // if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
+    testingChannel.send(embed)
+}
 
 init();

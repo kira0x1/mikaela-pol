@@ -1,5 +1,5 @@
 import { Message, RichEmbed } from 'discord.js';
-import { Command } from '../classes/command';
+import Command from '../classes/command';
 import { commands, GetCommand, CheckPerms } from '../util/CommandUtil';
 import { createField, embedColor, ListEmbed, QuickEmbed, createEmptyField } from '../util/Style';
 
