@@ -38,11 +38,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var discord_js_1 = require("discord.js");
 var CommandUtil_1 = require("../util/CommandUtil");
 var Style_1 = require("../util/Style");
-var command = {
+exports.command = {
     name: "help",
     description: "List Commands",
     aliases: ["h"],
-    cooldown: 3,
+    cooldown: 1,
     execute: function (message, args) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -57,7 +57,7 @@ var command = {
 };
 function HelpAll(message) {
     var fields;
-    fields = CommandUtil_1.commands.map(function (cmd) { return ({
+    fields = CommandUtil_1.commands.filter(function (cmd) { return CommandUtil_1.CheckPerms(cmd, message); }).map(function (cmd) { return ({
         title: cmd.name,
         content: cmd.description + "\n \u200b",
         inline: false
@@ -65,16 +65,41 @@ function HelpAll(message) {
     Style_1.ListEmbed(message, "Commands", undefined, fields);
 }
 function HelpCommand(message, args) {
-    {
-        var commandName = args.shift().toLowerCase();
-        var command_1 = CommandUtil_1.GetCommand(commandName);
-        //Check if command is found
-        if (!command_1)
-            return Style_1.QuickEmbed("Command not found", message);
-        //Create embed
-        var embed = new discord_js_1.RichEmbed().setColor(Style_1.embedColor);
-        embed.fields.push(Style_1.createField(command_1.name, command_1.description + "\n\u200B"));
-        message.channel.send(embed);
+    var commandName = args.shift().toLowerCase();
+    var command = CommandUtil_1.GetCommand(commandName);
+    //Check if command is found
+    if (!command)
+        return Style_1.QuickEmbed("Command not found", message);
+    //Check if user has permission
+    if (!CommandUtil_1.CheckPerms(command, message))
+        return;
+    //Create embed
+    var embed = new discord_js_1.RichEmbed().setColor(Style_1.embedColor);
+    embed.fields.push(Style_1.createField(command.name, command.description + "\n\u200B"));
+    //Check if command has subcommands
+    if (command.subCmd) {
+        InsertSubCommands(embed, command.subCmd);
+    }
+    message.channel.send(embed);
+}
+function InsertSubCommands(embed, subCommands) {
+    //Get amound of rows for flags
+    var rows = Math.ceil(subCommands.length / 3);
+    console.log("about to enter for loop");
+    var count = 0;
+    //Add command flags
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < 3; col++) {
+            if (count >= subCommands.length) {
+                embed.fields.push(Style_1.createEmptyField(true));
+            }
+            else {
+                var aliases = 'aliases: none';
+                if (subCommands[count].aliases !== undefined)
+                    aliases = subCommands[count].aliases.join(", ");
+                embed.fields.push(Style_1.createField(subCommands[count].name, aliases, true));
+            }
+            count++;
+        }
     }
 }
-module.exports = command;

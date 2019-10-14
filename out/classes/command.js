@@ -10,7 +10,6 @@ var Command = /** @class */ (function () {
         this.aliases = command.aliases;
         this.args = command.args;
         this.cooldown = command.cooldown;
-        this.adminOnly = command.adminOnly || false;
     }
     return Command;
 }());

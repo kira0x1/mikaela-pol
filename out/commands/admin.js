@@ -34,30 +34,32 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-var mongoose_1 = require("mongoose");
-var config_1 = require("../config");
-var dbUser_1 = require("./dbUser");
-exports.conn = undefined;
-function init() {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, mongoose_1.createConnection(config_1.dbLogin, {
-                        useNewUrlParser: true,
-                        useCreateIndex: true,
-                        useUnifiedTopology: true,
-                        keepAlive: true
-                    })];
-                case 1:
-                    exports.conn = _a.sent();
-                    console.log("connected to mongodb");
-                    return [4 /*yield*/, dbUser_1.initUsers()];
-                case 2:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
+var chalk_1 = __importDefault(require("chalk"));
+// Sub-Command List Users
+var listUsers = {
+    name: 'listUsers',
+    aliases: ['lsu'],
+    perms: ['admin'],
+    execute: function (message, args) {
+        message.channel.send("ls users called");
+    }
+};
+exports.command = {
+    name: 'admin',
+    aliases: ['sys'],
+    description: 'Admin',
+    perms: ['admin'],
+    subCmd: [listUsers],
+    execute: function (message, args) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                console.log(chalk_1.default.cyan.bold("Admin command called"));
+                return [2 /*return*/];
+            });
         });
-    });
-}
-exports.dbinit = init;
+    }
+};

@@ -35,16 +35,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.command = {
-    name: 'test',
-    description: 'Test Command',
-    aliases: ['t'],
-    cooldown: 4,
-    execute: function (message, args) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/];
-            });
+var mongoose_1 = require("mongoose");
+var config_1 = require("../config");
+var conn = undefined;
+exports.conn = conn;
+function init() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            mongoose_1.createConnection(config_1.dbLogin, {
+                useNewUrlParser: true,
+                useCreateIndex: true,
+                useUnifiedTopology: true,
+                keepAlive: true
+            }).then(function (connection) {
+                exports.conn = conn = connection;
+                console.log("connected to mongodb");
+            }).catch(function (err) { return console.log("failed to connect to mongodb", err); });
+            return [2 /*return*/];
         });
-    }
-};
+    });
+}
+exports.dbinit = init;

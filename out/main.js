@@ -34,21 +34,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var discord_js_1 = require("discord.js");
 var CommandUtil_1 = require("./util/CommandUtil");
 var config_1 = require("./config");
-var dbSetup_1 = require("./db/dbSetup");
+var chalk_1 = __importDefault(require("chalk"));
 var client = new discord_js_1.Client();
+var logGuild;
+var testingChannel;
+var logMessageChannel;
 function init() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, dbSetup_1.dbinit()];
+                case 0: 
+                // await LoadDB();
+                return [4 /*yield*/, CommandUtil_1.LoadCommands()];
                 case 1:
-                    _a.sent();
-                    return [4 /*yield*/, CommandUtil_1.LoadCommands()];
-                case 2:
+                    // await LoadDB();
                     _a.sent();
                     client.login(config_1.token);
                     return [2 /*return*/];
@@ -57,9 +63,14 @@ function init() {
     });
 }
 client.on('ready', function () {
-    console.log(client.user.username + " online!");
+    console.log(chalk_1.default.bgCyan.bold(client.user.username + " online!"));
+    logGuild = client.guilds.get(config_1.archiveGuildId);
+    testingChannel = logGuild.channels.get(config_1.testingChannelId);
+    logMessageChannel = logGuild.channels.get(config_1.logMessagesChannelId);
 });
 client.on('message', function (message) {
+    if (message.author.id !== client.user.id)
+        LogMessage(message);
     if (message.author.bot || !message.content.startsWith(config_1.prefix))
         return;
     var args = message.content.slice(config_1.prefix.length).split(/ +/);
@@ -68,4 +79,30 @@ client.on('message', function (message) {
         return;
     CommandUtil_1.ExecuteCommand(commandName, message, args);
 });
+function LogMessage(message) {
+    var msglog = {
+        username: message.author.username,
+        tag: message.author.tag,
+        nickname: message.member.displayName,
+        id: message.author.id,
+        content: message.content,
+        timestamp: new Date(message.createdTimestamp).toUTCString(),
+        channel: {
+            name: message.channel.name,
+            id: message.channel.id
+        }
+    };
+    var embed = new discord_js_1.RichEmbed()
+        .setThumbnail(message.author.avatarURL)
+        .setTitle("Tag: " + msglog.tag)
+        .setDescription("user: " + msglog.username + "\nid: " + msglog.id + "\n\u200B")
+        .addBlankField(true)
+        .addField("Channel", "**" + msglog.channel.name + "**\n\u200B", true)
+        .addBlankField(true)
+        .addField("Content", msglog.content.split(/ +/).join(" ") || "**EMPTY**", true)
+        .addBlankField(true)
+        .setFooter("Timestamp: " + msglog.timestamp)
+        .setColor("0x#c90c58");
+    logMessageChannel.send(embed);
+}
 init();

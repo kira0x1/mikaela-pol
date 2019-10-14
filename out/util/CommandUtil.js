@@ -42,7 +42,10 @@ var discord_js_1 = require("discord.js");
 var path_1 = __importDefault(require("path"));
 var fs_1 = require("fs");
 var Style_1 = require("./Style");
+var config_1 = require("../config");
+var chalk_1 = __importDefault(require("chalk"));
 exports.commands = new discord_js_1.Collection();
+var subCommands = new discord_js_1.Collection();
 exports.cooldowns = new discord_js_1.Collection();
 function LoadCommands() {
     return __awaiter(this, void 0, void 0, function () {
@@ -51,8 +54,13 @@ function LoadCommands() {
             folderPath = path_1.default.join(__dirname, '..', 'commands');
             commandFiles = fs_1.readdirSync(folderPath).filter(function (file) { return file.endsWith('.js'); });
             commandFiles.map(function (file) {
-                var command = require(path_1.default.join(folderPath, file));
-                exports.commands.set(command.name, command);
+                var command = require("../commands/" + file).command;
+                var cmdName = command.name.toLowerCase();
+                exports.commands.set(cmdName, command);
+                //If this command has subcommands then add it to the subCommand Collection
+                if (exports.commands.get(cmdName).subCmd) {
+                    exports.commands.get(cmdName).subCmd.map(function (cmd) { return subCommands.set(cmd.name.toLowerCase(), cmd); });
+                }
             });
             return [2 /*return*/];
         });
@@ -63,13 +71,19 @@ function GetCommand(commandName) {
     return exports.commands.get(commandName) || exports.commands.find(function (cmd) { return cmd.aliases && cmd.aliases.includes(commandName); });
 }
 exports.GetCommand = GetCommand;
+function GetSubCommand(commandName) {
+    return subCommands.get(commandName) || subCommands.find(function (cmd) { return cmd.aliases && cmd.aliases.includes(commandName); });
+}
 function ExecuteCommand(commandName, message, args) {
-    var command = GetCommand(commandName);
+    var command = GetCommand(commandName) || GetSubCommand(commandName);
+    //Check if command not found
     if (!command) {
         return Style_1.QuickEmbed("Command **" + commandName + "** not found", message);
     }
     //Check if command is on cooldown, if so return.
     if (IsOnCoolDown(command, message))
+        return;
+    if (!CheckPerms(command, message))
         return;
     //Execute Command
     try {
@@ -80,6 +94,17 @@ function ExecuteCommand(commandName, message, args) {
     }
 }
 exports.ExecuteCommand = ExecuteCommand;
+function CheckPerms(command, message) {
+    var authorId = message.author.id;
+    if (command.perms && command.perms.includes('admin')) {
+        if (config_1.permissions.admins.includes(authorId))
+            return true;
+        console.log(chalk_1.default.bgRed.bold("user " + message.author.username + " lacks permission \"admin\""));
+        return false;
+    }
+    return true;
+}
+exports.CheckPerms = CheckPerms;
 function IsOnCoolDown(command, message) {
     if (!exports.cooldowns.has(command.name)) {
         exports.cooldowns.set(command.name, new discord_js_1.Collection());

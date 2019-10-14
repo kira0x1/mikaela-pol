@@ -7,9 +7,8 @@ export abstract class Command {
     aliases: Array<string>;
     subCmd?: Array<Command> | undefined;
     args?: boolean | false;
-    cooldown: number | 3;
+    cooldown?: number | 3;
     perms?: string[];
-    adminOnly?: boolean | false;
 
     constructor(command: Command) {
         this.name = command.name;
@@ -20,7 +19,6 @@ export abstract class Command {
         this.aliases = command.aliases;
         this.args = command.args;
         this.cooldown = command.cooldown;
-        this.adminOnly = command.adminOnly || false;
     }
 
     abstract execute(message: Message, args: Array<string>): void;
