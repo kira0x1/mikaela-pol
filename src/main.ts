@@ -116,7 +116,7 @@ function LogMessage(message: Message) {
         .setColor("0x#c90c58")
 
     message.attachments.map(file => {
-        console.log(file);
+        embed.addField("File", file.url, true)
     })
 
     // if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
