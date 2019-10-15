@@ -1,9 +1,12 @@
-import { Client, Message, Guild, RichEmbed, TextChannel, GuildChannel } from 'discord.js';
+import { Client, Message, Guild, RichEmbed, TextChannel, GuildChannel, Collection } from 'discord.js';
 import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
-import { prefix, token, archiveGuildId, testingChannelId, logMessagesChannelId } from './config';
+import { prefix, token, archiveGuildId, testingChannelId, logMessagesChannelId, polGuildId } from './config';
 import { dbinit as LoadDB } from './db/database';
 import chalk from 'chalk'
 import IMessageLog from './classes/IMessageLog';
+import initRolePersist from './rolepersist';
+import { updateUser, getUser, addUser, deleteUser } from './db/userController';
+import { IUser, IRole } from './db/user';
 
 const client = new Client();
 
@@ -12,7 +15,7 @@ var testingChannel: TextChannel | GuildChannel
 var logMessageChannel: TextChannel | GuildChannel
 
 async function init() {
-    // await LoadDB();
+    await LoadDB();
     await LoadCommands();
     client.login(token);
 }
@@ -24,10 +27,52 @@ client.on('ready', () => {
 
     testingChannel = logGuild.channels.get(testingChannelId)
     logMessageChannel = logGuild.channels.get(logMessagesChannelId)
+
+})
+
+client.on('guildMemberAdd', member => {
+    if (member.guild.id !== polGuildId) return
+
+    const user: IUser = {
+        username: member.user.username, tag: member.user.tag, id: member.id, roles: []
+    }
+
+    getUser(user.tag).then(userFound => {
+        console.log(`found existing user.. ${user.tag}`)
+        const roles = new Collection()
+
+        userFound.roles.map(rl => {
+            roles.set(rl.id, member.guild.roles.get(rl.id))
+        })
+
+        member.setRoles(roles)
+    }).catch(err => {
+        member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
+        console.log(`user ${user.tag} does not exist, creating user now`)
+        addUser(user)
+    })
+})
+
+client.on('guildMemberRemove', member => {
+    if (member.guild.id !== polGuildId) return
+
+    const user: IUser = {
+        username: member.user.username, tag: member.user.tag, id: member.id, roles: []
+    }
+
+    getUser(user.tag).then(userFound => {
+        console.log(`found existing user.. ${user.tag}`)
+        member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
+        updateUser(user.tag, user)
+    }).catch(err => {
+        member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
+        console.log(`user ${user.tag} does not exist, creating user now`)
+        addUser(user)
+    })
 })
 
 client.on('message', message => {
-    if (message.author.id !== client.user.id && message.guild.id !== archiveGuildId)
+    if (message.author.id !== client.user.id && message.guild.id === polGuildId)
         LogMessage(message);
 
     if (message.author.bot || !message.content.startsWith(prefix))
@@ -74,9 +119,9 @@ function LogMessage(message: Message) {
         console.log(file);
     })
 
-    if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
-    // if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
-    testingChannel.send(embed)
+    // if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
+    if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
+    logMessageChannel.send(embed)
 }
 
 init();

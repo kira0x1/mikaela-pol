@@ -46,6 +46,7 @@ function init() {
                 useNewUrlParser: true,
                 useCreateIndex: true,
                 useUnifiedTopology: true,
+                useFindAndModify: true,
                 keepAlive: true
             }).then(function (connection) {
                 exports.conn = conn = connection;

@@ -41,7 +41,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var discord_js_1 = require("discord.js");
 var CommandUtil_1 = require("./util/CommandUtil");
 var config_1 = require("./config");
+var database_1 = require("./db/database");
 var chalk_1 = __importDefault(require("chalk"));
+var userController_1 = require("./db/userController");
 var client = new discord_js_1.Client();
 var logGuild;
 var testingChannel;
@@ -50,11 +52,11 @@ function init() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: 
-                // await LoadDB();
-                return [4 /*yield*/, CommandUtil_1.LoadCommands()];
+                case 0: return [4 /*yield*/, database_1.dbinit()];
                 case 1:
-                    // await LoadDB();
+                    _a.sent();
+                    return [4 /*yield*/, CommandUtil_1.LoadCommands()];
+                case 2:
                     _a.sent();
                     client.login(config_1.token);
                     return [2 /*return*/];
@@ -68,8 +70,43 @@ client.on('ready', function () {
     testingChannel = logGuild.channels.get(config_1.testingChannelId);
     logMessageChannel = logGuild.channels.get(config_1.logMessagesChannelId);
 });
+client.on('guildMemberAdd', function (member) {
+    if (member.guild.id !== config_1.polGuildId)
+        return;
+    var user = {
+        username: member.user.username, tag: member.user.tag, id: member.id, roles: []
+    };
+    userController_1.getUser(user.tag).then(function (userFound) {
+        console.log("found existing user.. " + user.tag);
+        var roles = new discord_js_1.Collection();
+        userFound.roles.map(function (rl) {
+            roles.set(rl.id, member.guild.roles.get(rl.id));
+        });
+        member.setRoles(roles);
+    }).catch(function (err) {
+        member.roles.map(function (rl) { return user.roles.push({ name: rl.name, id: rl.id }); });
+        console.log("user " + user.tag + " does not exist, creating user now");
+        userController_1.addUser(user);
+    });
+});
+client.on('guildMemberRemove', function (member) {
+    if (member.guild.id !== config_1.polGuildId)
+        return;
+    var user = {
+        username: member.user.username, tag: member.user.tag, id: member.id, roles: []
+    };
+    userController_1.getUser(user.tag).then(function (userFound) {
+        console.log("found existing user.. " + user.tag);
+        member.roles.map(function (rl) { return user.roles.push({ name: rl.name, id: rl.id }); });
+        userController_1.updateUser(user.tag, user);
+    }).catch(function (err) {
+        member.roles.map(function (rl) { return user.roles.push({ name: rl.name, id: rl.id }); });
+        console.log("user " + user.tag + " does not exist, creating user now");
+        userController_1.addUser(user);
+    });
+});
 client.on('message', function (message) {
-    if (message.author.id !== client.user.id && message.guild.id !== config_1.archiveGuildId)
+    if (message.author.id !== client.user.id && message.guild.id === config_1.polGuildId)
         LogMessage(message);
     if (message.author.bot || !message.content.startsWith(config_1.prefix))
         return;
@@ -109,9 +146,9 @@ function LogMessage(message) {
     message.attachments.map(function (file) {
         console.log(file);
     });
-    if (!(function (testingChannel) { return testingChannel.type === 'text'; })(testingChannel))
+    // if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
+    if (!(function (logMessageChannel) { return logMessageChannel.type === 'text'; })(logMessageChannel))
         return;
-    // if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
-    testingChannel.send(embed);
+    logMessageChannel.send(embed);
 }
 init();

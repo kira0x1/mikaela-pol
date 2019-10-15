@@ -8,6 +8,7 @@ async function init() {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
+    useFindAndModify: true,
     keepAlive: true
   }).then(connection => {
     conn = connection;

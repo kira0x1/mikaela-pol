@@ -1,5 +1,5 @@
 import { Collection, Message } from 'discord.js';
-import { Command } from '../classes/command';
+import Command from '../classes/command';
 import path from 'path';
 import { readdirSync } from "fs";
 import { QuickEmbed } from "./Style";

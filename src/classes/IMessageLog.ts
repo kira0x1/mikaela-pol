@@ -1,4 +1,4 @@
-import { IChannel } from "./IChannel";
+import IChannel from "./IChannel";
 
 export default interface IMessageLog {
     username: string,

@@ -39,6 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var chalk_1 = __importDefault(require("chalk"));
+var userController_1 = require("../db/userController");
 // Sub-Command List Users
 var listUsers = {
     name: 'listUsers',
@@ -48,12 +49,54 @@ var listUsers = {
         message.channel.send("ls users called");
     }
 };
+var deleteMe = {
+    name: 'deleteMe',
+    aliases: ['dl'],
+    perms: ['admin'],
+    execute: function (message, args) {
+        return __awaiter(this, void 0, void 0, function () {
+            var author, user;
+            return __generator(this, function (_a) {
+                author = message.author;
+                user = {
+                    username: author.username,
+                    tag: author.tag,
+                    id: author.id,
+                    roles: []
+                };
+                userController_1.deleteUser(author.tag).then(function (res) { return console.log(res); }).catch(function (err) { return console.error(err); });
+                return [2 /*return*/];
+            });
+        });
+    }
+};
+var testAdd = {
+    name: 'testAdd',
+    aliases: ['ta'],
+    perms: ['admin'],
+    execute: function (message, args) {
+        return __awaiter(this, void 0, void 0, function () {
+            var author, user;
+            return __generator(this, function (_a) {
+                author = message.author;
+                user = {
+                    username: author.username,
+                    tag: author.tag,
+                    id: author.id,
+                    roles: []
+                };
+                message.client.emit('guildMemberAdd', message.member);
+                return [2 /*return*/];
+            });
+        });
+    }
+};
 exports.command = {
     name: 'admin',
     aliases: ['sys'],
     description: 'Admin',
     perms: ['admin'],
-    subCmd: [listUsers],
+    subCmd: [listUsers, testAdd, deleteMe],
     execute: function (message, args) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
