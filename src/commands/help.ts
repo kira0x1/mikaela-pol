@@ -6,7 +6,7 @@ import { createField, embedColor, ListEmbed, QuickEmbed, createEmptyField } from
 export const command: Command = {
     name: "help",
     description: "List Commands",
-    aliases: ["h"],
+    aliases: ["h", "commands"],
     cooldown: 1,
 
     async execute(message, args) {
@@ -26,7 +26,7 @@ function HelpAll(message: Message) {
     ListEmbed(message, "Commands", undefined, fields);
 }
 
-function HelpCommand(message: Message, args: string[]) {
+export async function HelpCommand(message: Message, args: string[]) {
     const commandName = args.shift().toLowerCase();
     const command = GetCommand(commandName);
 
@@ -51,8 +51,6 @@ function HelpCommand(message: Message, args: string[]) {
 function InsertSubCommands(embed: RichEmbed, subCommands: Command[]) {
     //Get amound of rows for flags
     const rows = Math.ceil(subCommands.length / 3);
-
-    console.log(`about to enter for loop`);
 
     let count = 0;
     //Add command flags

@@ -1,12 +1,10 @@
-import { Client, Message, Guild, RichEmbed, TextChannel, GuildChannel, Collection } from 'discord.js';
-import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
-import { prefix, token, archiveGuildId, testingChannelId, logMessagesChannelId, polGuildId } from './config';
-import { dbinit as LoadDB } from './db/database';
-import chalk from 'chalk'
+import chalk from 'chalk';
+import { Client, Guild, GuildChannel, Message, RichEmbed, TextChannel } from 'discord.js';
 import IMessageLog from './classes/IMessageLog';
-import initRolePersist from './rolepersist';
-import { updateUser, getUser, addUser, deleteUser } from './db/userController';
-import { IUser, IRole } from './db/user';
+import { archiveGuildId, logMessagesChannelId, polGuildId, prefix, testingChannelId, token } from './config';
+import { dbinit as LoadDB } from './db/database';
+import { setMemberRoles, updateMemberRoles } from './rolePersist';
+import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
 
 const client = new Client();
 
@@ -16,59 +14,25 @@ var logMessageChannel: TextChannel | GuildChannel
 
 async function init() {
     await LoadDB();
-    await LoadCommands();
+    LoadCommands();
     client.login(token);
 }
 
 client.on('ready', () => {
     console.log(chalk.bgCyan.bold(`${client.user.username} online!`))
-
     logGuild = client.guilds.get(archiveGuildId);
-
     testingChannel = logGuild.channels.get(testingChannelId)
     logMessageChannel = logGuild.channels.get(logMessagesChannelId)
-
 })
 
 client.on('guildMemberAdd', member => {
     if (member.guild.id !== polGuildId) return
-
-    const user: IUser = {
-        username: member.user.username, tag: member.user.tag, id: member.id, roles: []
-    }
-
-    getUser(user.tag).then(userFound => {
-        console.log(`found existing user.. ${user.tag}`)
-        const roles = new Collection()
-
-        userFound.roles.map(rl => {
-            roles.set(rl.id, member.guild.roles.get(rl.id))
-        })
-
-        member.setRoles(roles)
-    }).catch(err => {
-        member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
-        console.log(`user ${user.tag} does not exist, creating user now`)
-        addUser(user)
-    })
+    setMemberRoles(member);
 })
 
 client.on('guildMemberRemove', member => {
     if (member.guild.id !== polGuildId) return
-
-    const user: IUser = {
-        username: member.user.username, tag: member.user.tag, id: member.id, roles: []
-    }
-
-    getUser(user.tag).then(userFound => {
-        console.log(`found existing user.. ${user.tag}`)
-        member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
-        updateUser(user.tag, user)
-    }).catch(err => {
-        member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
-        console.log(`user ${user.tag} does not exist, creating user now`)
-        addUser(user)
-    })
+    updateMemberRoles(member);
 })
 
 client.on('message', message => {
@@ -81,6 +45,7 @@ client.on('message', message => {
     const args = message.content.slice(prefix.length).split(/ +/)
     let commandName: string = (args.shift() || '').toLowerCase();
     if (commandName === '' || commandName.startsWith(prefix)) return;
+
     ExecuteCommand(commandName, message, args);
 })
 
@@ -106,7 +71,7 @@ function LogMessage(message: Message) {
         .setTitle(`Tag: ${msglog.tag}`)
         .setDescription(`user: ${msglog.username}\nid: ${msglog.id}\n\u200b`)
         .addBlankField(true)
-        .addField("Channel", `**${msglog.channel.name}**\n\u200b`, true)
+        .addField("Channel", `**${msglog.channel.name}**\n`)
         .addBlankField(true)
 
     if (contentString !== "") { embed.addField("Content", contentString, true) }

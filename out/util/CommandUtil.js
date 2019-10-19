@@ -1,106 +1,90 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var discord_js_1 = require("discord.js");
-var path_1 = __importDefault(require("path"));
-var fs_1 = require("fs");
-var Style_1 = require("./Style");
-var config_1 = require("../config");
-var chalk_1 = __importDefault(require("chalk"));
+const discord_js_1 = require("discord.js");
+const path_1 = __importDefault(require("path"));
+const fs_1 = require("fs");
+const Style_1 = require("./Style");
+const config_1 = require("../config");
+const chalk_1 = __importDefault(require("chalk"));
 exports.commands = new discord_js_1.Collection();
-var subCommands = new discord_js_1.Collection();
+const subCommands = new discord_js_1.Collection();
 exports.cooldowns = new discord_js_1.Collection();
 function LoadCommands() {
-    return __awaiter(this, void 0, void 0, function () {
-        var folderPath, commandFiles;
-        return __generator(this, function (_a) {
-            folderPath = path_1.default.join(__dirname, '..', 'commands');
-            commandFiles = fs_1.readdirSync(folderPath).filter(function (file) { return file.endsWith('.js'); });
-            commandFiles.map(function (file) {
-                var command = require("../commands/" + file).command;
-                var cmdName = command.name.toLowerCase();
-                exports.commands.set(cmdName, command);
-                //If this command has subcommands then add it to the subCommand Collection
-                if (exports.commands.get(cmdName).subCmd) {
-                    exports.commands.get(cmdName).subCmd.map(function (cmd) { return subCommands.set(cmd.name.toLowerCase(), cmd); });
-                }
-            });
-            return [2 /*return*/];
-        });
+    const folderPath = path_1.default.join(__dirname, '..', 'commands');
+    const commandFiles = fs_1.readdirSync(folderPath).filter(file => file.endsWith('.js'));
+    commandFiles.map(file => {
+        const { command } = require(`../commands/${file}`);
+        const cmdName = command.name.toLowerCase();
+        exports.commands.set(cmdName, command);
+        //If this command has subcommands then add it to the subCommand Collection
+        if (exports.commands.get(cmdName).subCmd) {
+            exports.commands.get(cmdName).subCmd.map(cmd => subCommands.set(cmd.name.toLowerCase(), cmd));
+        }
     });
 }
 exports.LoadCommands = LoadCommands;
 function GetCommand(commandName) {
-    return exports.commands.get(commandName) || exports.commands.find(function (cmd) { return cmd.aliases && cmd.aliases.includes(commandName); });
+    return exports.commands.get(commandName) || exports.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 }
 exports.GetCommand = GetCommand;
 function GetSubCommand(commandName) {
-    return subCommands.get(commandName) || subCommands.find(function (cmd) { return cmd.aliases && cmd.aliases.includes(commandName); });
+    return subCommands.get(commandName) || subCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 }
 function ExecuteCommand(commandName, message, args) {
-    var command = GetCommand(commandName) || GetSubCommand(commandName);
+    const command = GetCommand(commandName) || GetSubCommand(commandName);
     //Check if command not found
     if (!command) {
-        return Style_1.QuickEmbed("Command **" + commandName + "** not found", message);
+        return Style_1.QuickEmbed(`Command **${commandName}** not found`, message);
     }
     //Check if command is on cooldown, if so return.
+    if (!CheckPerms(command, message))
+        return;
     if (IsOnCoolDown(command, message))
         return;
-    if (!CheckPerms(command, message))
+    if (!checkArgs(command, message, args))
         return;
     //Execute Command
     try {
         command.execute(message, args);
     }
     catch (error) {
-        console.error("command execute failed", error);
+        console.error(`command execute failed`, error);
     }
 }
 exports.ExecuteCommand = ExecuteCommand;
-function CheckPerms(command, message) {
-    var authorId = message.author.id;
-    if (command.perms && command.perms.includes('admin')) {
-        if (config_1.permissions.admins.includes(authorId))
-            return true;
-        console.log(chalk_1.default.bgRed.bold("user " + message.author.username + " lacks permission \"admin\""));
+function checkArgs(command, message, args) {
+    if (command.args === true && (!args.length || !args)) {
+        const embed = new discord_js_1.RichEmbed()
+            .setTitle("Arguments Required")
+            .setColor(Style_1.embedColor);
+        if (command.usage) {
+            embed.addField('usage', command.usage);
+        }
+        message.channel.send(embed);
         return false;
+    }
+    return true;
+}
+function CheckPerms(command, message) {
+    if (command.perms) {
+        let hasPerms = false;
+        command.perms.forEach(cmdPerm => {
+            let permFound = config_1.rolePerms.find(rl => rl.name.toLowerCase() === cmdPerm.toLowerCase());
+            if (permFound) {
+                if (message.member.roles.get(permFound.id)) {
+                    hasPerms = true;
+                }
+            }
+        });
+        console.log(`value: ${hasPerms}`);
+        // if (permissions.admins.includes(authorId)) return true;
+        if (!hasPerms) {
+            console.log(chalk_1.default.bgRed.bold(`user ${message.author.username} lacks permission \"admin\"`));
+            return false;
+        }
     }
     return true;
 }
@@ -109,23 +93,23 @@ function IsOnCoolDown(command, message) {
     if (!exports.cooldowns.has(command.name)) {
         exports.cooldowns.set(command.name, new discord_js_1.Collection());
     }
-    var now = Date.now();
-    var timestamps = exports.cooldowns.get(command.name);
-    var cdAmount = command.cooldown * 1000;
-    var userId = message.author.id;
+    const now = Date.now();
+    const timestamps = exports.cooldowns.get(command.name);
+    const cdAmount = command.cooldown * 1000;
+    const userId = message.author.id;
     if (timestamps.has(userId)) {
-        var cdEndTime = timestamps.get(userId) + cdAmount;
+        const cdEndTime = timestamps.get(userId) + cdAmount;
         //Check if command is still on cooldown
         if (now < cdEndTime) {
             timestamps.set(userId, now);
-            var timeLeft = (cdEndTime - now) / 1000;
-            Style_1.QuickEmbed("Command **" + command.name + "** on cooldown " + timeLeft.toFixed(1) + " seconds left", message);
+            const timeLeft = (cdEndTime - now) / 1000;
+            Style_1.QuickEmbed(`Command **${command.name}** on cooldown ${timeLeft.toFixed(1)} seconds left`, message);
             return true;
         }
     }
     timestamps.set(userId, now);
     //Automatically delete timestamp just incase
-    setTimeout(function () { return timestamps.delete(userId); }, cdAmount);
+    setTimeout(() => timestamps.delete(userId), cdAmount);
     //Command is not on cooldown
     return false;
 }

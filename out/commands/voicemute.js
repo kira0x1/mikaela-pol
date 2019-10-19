@@ -8,27 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Style_1 = require("../util/Style");
-const maxPurgeLimit = 15;
 exports.command = {
-    name: 'purge',
-    description: 'purges messages',
-    args: true,
-    aliases: [],
-    perms: ["admin"],
+    name: "voicemute",
+    description: "",
+    aliases: ['vmute', 'vm', 'mutevoice'],
+    perms: ['admin'],
     execute(message, args) {
         return __awaiter(this, void 0, void 0, function* () {
-            let amount = Number(args.shift());
-            if (isNaN(amount))
-                return Style_1.QuickEmbed("amount must be a number", message);
-            if (amount > maxPurgeLimit)
-                return Style_1.QuickEmbed(`Max Limit ${maxPurgeLimit}`, message);
-            if (amount <= 0)
-                return Style_1.QuickEmbed("amount must be greater then 0", message);
-            console.log("purging...");
-            message.channel.fetchMessages({ limit: amount + 1 }).then(msg => {
-                message.channel.bulkDelete(msg);
-            });
+            const tagged = message.mentions.members.first();
+            if (tagged) {
+                // if(tagged.setMute(true))
+            }
+            else {
+            }
         });
     }
 };

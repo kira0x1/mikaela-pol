@@ -7,102 +7,166 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var chalk_1 = __importDefault(require("chalk"));
-var userController_1 = require("../db/userController");
+const chalk_1 = __importDefault(require("chalk"));
+const discord_js_1 = require("discord.js");
+const userController_1 = require("../db/userController");
+const help_1 = require("./help");
+const Style_1 = require("../util/Style");
 // Sub-Command List Users
-var listUsers = {
+const listUsers = {
     name: 'listUsers',
     aliases: ['lsu'],
     perms: ['admin'],
-    execute: function (message, args) {
+    execute(message, args) {
         message.channel.send("ls users called");
     }
 };
-var deleteMe = {
+const deleteMe = {
     name: 'deleteMe',
     aliases: ['dl'],
     perms: ['admin'],
-    execute: function (message, args) {
-        return __awaiter(this, void 0, void 0, function () {
-            var author, user;
-            return __generator(this, function (_a) {
-                author = message.author;
-                user = {
-                    username: author.username,
-                    tag: author.tag,
-                    id: author.id,
-                    roles: []
-                };
-                userController_1.deleteUser(author.tag).then(function (res) { return console.log(res); }).catch(function (err) { return console.error(err); });
-                return [2 /*return*/];
-            });
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const author = message.author;
+            const user = {
+                username: author.username,
+                tag: author.tag,
+                id: author.id,
+                roles: []
+            };
+            userController_1.deleteUser(author.tag).then(res => console.log(res)).catch(err => console.error(err));
         });
     }
 };
-var testAdd = {
+const testAdd = {
     name: 'testAdd',
     aliases: ['ta'],
     perms: ['admin'],
-    execute: function (message, args) {
-        return __awaiter(this, void 0, void 0, function () {
-            var author, user;
-            return __generator(this, function (_a) {
-                author = message.author;
-                user = {
-                    username: author.username,
-                    tag: author.tag,
-                    id: author.id,
-                    roles: []
-                };
-                message.client.emit('guildMemberAdd', message.member);
-                return [2 /*return*/];
-            });
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const author = message.author;
+            const user = {
+                username: author.username,
+                tag: author.tag,
+                id: author.id,
+                roles: []
+            };
+            message.client.emit('guildMemberAdd', message.member);
+            return;
+            message.client.guilds.get("628013859776626708")
+                .members.get(author.id)
+                .roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }));
+            // addUser(user)
+            //     .then(user => console.log(`created new user`, user))
+            //     .catch(err => console.error(err))
+            userController_1.updateUser(user.id, user)
+                .then(user => console.log(`updated user`, user))
+                .catch(err => console.error(err));
         });
     }
 };
+const ban = {
+    name: 'Ban',
+    args: true,
+    description: 'Ban user by id or mention',
+    usage: '[id | @user]',
+    cooldown: 1,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let user = undefined;
+            if (message.mentions.members.first() !== undefined) {
+                user = message.mentions.members.first();
+            }
+            else {
+                let id = args.shift();
+                message.guild.fetchMember(id).then(member => {
+                    banMember(message, member);
+                }).catch(err => {
+                    message.channel.send(`Cannot find id ${id}`);
+                });
+            }
+        });
+    }
+};
+const kick = {
+    name: 'Kick',
+    args: true,
+    description: 'Kick user by id or mention',
+    usage: '[id | @user]',
+    cooldown: 1,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let user = undefined;
+            if (message.mentions.members.first() !== undefined) {
+                user = message.mentions.members.first();
+            }
+            else {
+                let id = args.shift();
+                message.guild.fetchMember(id).then(member => {
+                    let reason = undefined;
+                    if (args.length) {
+                        reason = args.shift();
+                    }
+                    kickMember(message, member, reason);
+                }).catch(err => {
+                    message.channel.send(`Cannot find id ${id}`);
+                });
+            }
+        });
+    }
+};
+function adminEmbed(message, member, title, reason) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const embed = new discord_js_1.RichEmbed()
+            .setColor(Style_1.embedColor)
+            .addField(title, member.user.tag, true)
+            .setThumbnail(member.user.avatarURL);
+        embed.addField('Reason', reason || 'none', true);
+        message.channel.send(embed);
+    });
+}
+exports.adminEmbed = adminEmbed;
+function kickMember(message, member, reason) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!member.kickable) {
+            //TODO FEEDBACK
+        }
+        return adminEmbed(message, member, 'Kicking', reason);
+        member.kick(reason).then(guildMember => {
+            adminEmbed(message, member, `Kicking user ${member.displayName}`, reason);
+        }).catch(err => {
+            message.channel.send(`error trying to kick user:\n${err}`);
+        });
+    });
+}
+function banMember(message, member, reason, days) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!member.bannable) {
+            //TODO FEEDBACK
+        }
+        return adminEmbed(message, member, 'Banning', reason);
+        let options = { reason: reason, days: days };
+        member.ban(options).then(guildMember => {
+            adminEmbed(message, member, 'Banning', reason);
+        }).catch(err => {
+            message.channel.send(`error trying to ban user:\n${err}`);
+        });
+    });
+}
 exports.command = {
     name: 'admin',
     aliases: ['sys'],
-    description: 'Admin',
+    description: 'Admin Commands',
     perms: ['admin'],
-    subCmd: [listUsers, testAdd, deleteMe],
-    execute: function (message, args) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                console.log(chalk_1.default.cyan.bold("Admin command called"));
-                return [2 /*return*/];
-            });
+    subCmd: [],
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            help_1.HelpCommand(message, ['admin']);
+            console.log(chalk_1.default.cyan.bold(`Admin command called`));
         });
     }
 };
