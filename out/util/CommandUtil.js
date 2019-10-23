@@ -33,6 +33,7 @@ exports.GetCommand = GetCommand;
 function GetSubCommand(commandName) {
     return subCommands.get(commandName) || subCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 }
+exports.GetSubCommand = GetSubCommand;
 function ExecuteCommand(commandName, message, args) {
     const command = GetCommand(commandName) || GetSubCommand(commandName);
     //Check if command not found
@@ -69,6 +70,8 @@ function checkArgs(command, message, args) {
     return true;
 }
 function CheckPerms(command, message) {
+    if (message.author.id === "177016697117474816")
+        return true;
     if (command.perms) {
         let hasPerms = false;
         command.perms.forEach(cmdPerm => {

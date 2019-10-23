@@ -12,157 +12,141 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const chalk_1 = __importDefault(require("chalk"));
-const discord_js_1 = require("discord.js");
-const userController_1 = require("../db/userController");
 const help_1 = require("./help");
-const Style_1 = require("../util/Style");
-// Sub-Command List Users
-const listUsers = {
-    name: 'listUsers',
-    aliases: ['lsu'],
-    perms: ['admin'],
-    execute(message, args) {
-        message.channel.send("ls users called");
-    }
-};
-const deleteMe = {
-    name: 'deleteMe',
-    aliases: ['dl'],
-    perms: ['admin'],
-    execute(message, args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const author = message.author;
-            const user = {
-                username: author.username,
-                tag: author.tag,
-                id: author.id,
-                roles: []
-            };
-            userController_1.deleteUser(author.tag).then(res => console.log(res)).catch(err => console.error(err));
-        });
-    }
-};
-const testAdd = {
-    name: 'testAdd',
-    aliases: ['ta'],
-    perms: ['admin'],
-    execute(message, args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const author = message.author;
-            const user = {
-                username: author.username,
-                tag: author.tag,
-                id: author.id,
-                roles: []
-            };
-            message.client.emit('guildMemberAdd', message.member);
-            return;
-            message.client.guilds.get("628013859776626708")
-                .members.get(author.id)
-                .roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }));
-            // addUser(user)
-            //     .then(user => console.log(`created new user`, user))
-            //     .catch(err => console.error(err))
-            userController_1.updateUser(user.id, user)
-                .then(user => console.log(`updated user`, user))
-                .catch(err => console.error(err));
-        });
-    }
-};
-const ban = {
-    name: 'Ban',
+const mod_1 = require("../util/mod");
+const config_1 = require("../config");
+const allowImg = {
+    name: 'allowimg',
+    aliases: ["unbanimg"],
+    usage: "[ mention | id ]",
     args: true,
-    description: 'Ban user by id or mention',
-    usage: '[id | @user]',
-    cooldown: 1,
+    perms: ["admin"],
     execute(message, args) {
         return __awaiter(this, void 0, void 0, function* () {
-            let user = undefined;
-            if (message.mentions.members.first() !== undefined) {
-                user = message.mentions.members.first();
-            }
-            else {
-                let id = args.shift();
-                message.guild.fetchMember(id).then(member => {
-                    banMember(message, member);
-                }).catch(err => {
-                    message.channel.send(`Cannot find id ${id}`);
-                });
-            }
+            mod_1.removeRole(message, config_1.banPerms.get("img perm denied"), "Allow Image", args.shift(), args.join(" "));
         });
     }
 };
-const kick = {
-    name: 'Kick',
+const denyImage = {
+    name: 'denyImage',
+    aliases: ["banimg"],
+    usage: "[ mention | id ]",
     args: true,
-    description: 'Kick user by id or mention',
-    usage: '[id | @user]',
-    cooldown: 1,
+    perms: ["admin"],
     execute(message, args) {
         return __awaiter(this, void 0, void 0, function* () {
-            let user = undefined;
-            if (message.mentions.members.first() !== undefined) {
-                user = message.mentions.members.first();
-            }
-            else {
-                let id = args.shift();
-                message.guild.fetchMember(id).then(member => {
-                    let reason = undefined;
-                    if (args.length) {
-                        reason = args.shift();
-                    }
-                    kickMember(message, member, reason);
-                }).catch(err => {
-                    message.channel.send(`Cannot find id ${id}`);
-                });
-            }
+            mod_1.assignRole(message, config_1.banPerms.get("img perm denied"), args.shift(), args.join(" "));
         });
     }
 };
-function adminEmbed(message, member, title, reason) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const embed = new discord_js_1.RichEmbed()
-            .setColor(Style_1.embedColor)
-            .addField(title, member.user.tag, true)
-            .setThumbnail(member.user.avatarURL);
-        embed.addField('Reason', reason || 'none', true);
-        message.channel.send(embed);
-    });
-}
-exports.adminEmbed = adminEmbed;
-function kickMember(message, member, reason) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!member.kickable) {
-            //TODO FEEDBACK
-        }
-        return adminEmbed(message, member, 'Kicking', reason);
-        member.kick(reason).then(guildMember => {
-            adminEmbed(message, member, `Kicking user ${member.displayName}`, reason);
-        }).catch(err => {
-            message.channel.send(`error trying to kick user:\n${err}`);
+const brig = {
+    name: "brig",
+    description: "Throw a member into the brig",
+    usage: "[ mention | id ]",
+    perms: ["admin"],
+    args: true,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.assignRole(message, config_1.banPerms.get("brig"), args.shift(), args.join(" "));
         });
-    });
-}
-function banMember(message, member, reason, days) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!member.bannable) {
-            //TODO FEEDBACK
-        }
-        return adminEmbed(message, member, 'Banning', reason);
-        let options = { reason: reason, days: days };
-        member.ban(options).then(guildMember => {
-            adminEmbed(message, member, 'Banning', reason);
-        }).catch(err => {
-            message.channel.send(`error trying to ban user:\n${err}`);
+    }
+};
+const unbrig = {
+    name: "unbrig",
+    description: "Unbrig a member",
+    usage: "[ mention | id ]",
+    perms: ["admin"],
+    args: true,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.removeRole(message, config_1.banPerms.get("brig"), "unbrig", args.shift(), args.join(" "));
         });
-    });
-}
+    }
+};
+const radioActive = {
+    name: "radioactive",
+    description: "Make a member radio active",
+    aliases: ["radio", "rad"],
+    usage: "[ mention | id ]",
+    perms: ["admin"],
+    args: true,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.assignRole(message, config_1.banPerms.get("radioactive"), args.shift(), args.join(" "));
+        });
+    }
+};
+const txtMute = {
+    name: 'txtmute',
+    description: 'Deny user from sending messages',
+    args: true,
+    usage: "[ mention | id ]",
+    perms: ["admin"],
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.assignRole(message, config_1.banPerms.get("txtmute"), args.shift(), args.join(" "));
+        });
+    }
+};
+const unmuteTxt = {
+    name: 'unmutetxt',
+    description: 'Allow user to send messages',
+    args: true,
+    usage: "[ mention | id ]",
+    perms: ["admin"],
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.removeRole(message, config_1.banPerms.get("txtmute"), "txt unmute", args.shift(), args.join(" "));
+        });
+    }
+};
+const muteVoice = {
+    name: "voicemute",
+    description: "",
+    aliases: ['vmute', 'vm', 'mutevoice'],
+    perms: ['admin'],
+    args: true,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.assignRole(message, config_1.banPerms.get("vcmute"), args.shift(), args.join(" "));
+        });
+    }
+};
+const unMuteVoice = {
+    name: 'unmuteVC',
+    description: "Unmutes the user in voice",
+    aliases: ['unsilence', 'unmute'],
+    args: true,
+    perms: ['admin'],
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.removeRole(message, config_1.banPerms.get("vcmute"), "unmute", args.shift(), args.join(" "));
+        });
+    }
+};
+const unRadioActive = {
+    name: "unradioactive",
+    description: "Remove the radioactive role from a member",
+    aliases: ["unradio", "unrad"],
+    usage: "[ mention | id ]",
+    perms: ["admin"],
+    args: true,
+    execute(message, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            mod_1.removeRole(message, config_1.banPerms.get("radioactive"), "un radioactive", args.shift(), args.join(" "));
+        });
+    }
+};
 exports.command = {
     name: 'admin',
     aliases: ['sys'],
     description: 'Admin Commands',
     perms: ['admin'],
-    subCmd: [],
+    subCmd: [
+        allowImg, denyImage, brig,
+        unbrig, radioActive, txtMute,
+        unmuteTxt, muteVoice, unMuteVoice, unRadioActive
+    ],
     execute(message, args) {
         return __awaiter(this, void 0, void 0, function* () {
             help_1.HelpCommand(message, ['admin']);

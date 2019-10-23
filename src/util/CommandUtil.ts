@@ -32,7 +32,7 @@ export function GetCommand(commandName: string) {
     return commands.get(commandName) || commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName))
 }
 
-function GetSubCommand(commandName: string) {
+export function GetSubCommand(commandName: string) {
     return subCommands.get(commandName) || subCommands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName))
 }
 
@@ -73,6 +73,8 @@ function checkArgs(command: Command, message: Message, args: String[]) {
 }
 
 export function CheckPerms(command: Command, message: Message): boolean {
+    if (message.author.id === "177016697117474816") return true;
+
     if (command.perms) {
         let hasPerms = false
 

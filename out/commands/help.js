@@ -37,7 +37,7 @@ function HelpAll(message) {
 function HelpCommand(message, args) {
     return __awaiter(this, void 0, void 0, function* () {
         const commandName = args.shift().toLowerCase();
-        const command = CommandUtil_1.GetCommand(commandName);
+        const command = CommandUtil_1.GetCommand(commandName) || CommandUtil_1.GetSubCommand(commandName);
         //Check if command is found
         if (!command)
             return Style_1.QuickEmbed(`Command not found`, message);
@@ -47,8 +47,14 @@ function HelpCommand(message, args) {
         //Create embed
         const embed = new discord_js_1.RichEmbed().setColor(Style_1.embedColor);
         embed.fields.push(Style_1.createField(command.name, command.description + `\n\u200b`));
+        if (command.aliases) {
+            let aliases = [];
+            command.aliases.map(al => aliases.push(al));
+            embed.addField("Aliases", aliases.join(', '), false);
+        }
         //Check if command has subcommands
         if (command.subCmd) {
+            embed.fields.push(Style_1.createEmptyField(true));
             InsertSubCommands(embed, command.subCmd);
         }
         message.channel.send(embed);
@@ -70,6 +76,22 @@ function InsertSubCommands(embed, subCommands) {
                 if (subCommands[count].aliases !== undefined)
                     aliases = subCommands[count].aliases.join(", ");
                 embed.fields.push(Style_1.createField(subCommands[count].name, aliases, true));
+            }
+            count++;
+        }
+    }
+}
+function InsertAliases(embed, aliases) {
+    //Get amound of rows for flags
+    const rows = Math.ceil(aliases.length / 3);
+    let count = 0;
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < 3; col++) {
+            if (count >= aliases.length) {
+                embed.fields.push(Style_1.createEmptyField(true));
+            }
+            else {
+                embed.fields.push(Style_1.createField(aliases[count], "\u200b", false));
             }
             count++;
         }
