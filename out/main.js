@@ -17,6 +17,7 @@ const config_1 = require("./config");
 const database_1 = require("./db/database");
 const rolePersist_1 = require("./rolePersist");
 const CommandUtil_1 = require("./util/CommandUtil");
+const bump_1 = require("./bump");
 const client = new discord_js_1.Client();
 var logGuild;
 var testingChannel;
@@ -33,6 +34,7 @@ client.on('ready', () => {
     logGuild = client.guilds.get(config_1.archiveGuildId);
     testingChannel = logGuild.channels.get(config_1.testingChannelId);
     logMessageChannel = logGuild.channels.get(config_1.logMessagesChannelId);
+    bump_1.initBump(client);
 });
 client.on('guildMemberAdd', member => {
     if (member.guild.id !== config_1.polGuildId)
@@ -43,6 +45,11 @@ client.on('guildMemberRemove', member => {
     if (member.guild.id !== config_1.polGuildId)
         return;
     rolePersist_1.updateMemberRoles(member);
+});
+client.on('roleUpdate', (oldRole, newRole) => {
+    if (oldRole === undefined)
+        return;
+    console.log(chalk_1.default.bgRed.bold(`Role Updated: ${oldRole.name}`));
 });
 client.on('message', message => {
     if (message.author.id !== client.user.id && message.guild.id === config_1.polGuildId)

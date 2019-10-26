@@ -5,6 +5,8 @@ import { archiveGuildId, logMessagesChannelId, polGuildId, prefix, testingChanne
 import { dbinit as LoadDB } from './db/database';
 import { setMemberRoles, updateMemberRoles } from './rolePersist';
 import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
+import { initBump } from './bump';
+import ms from 'ms';
 
 const client = new Client();
 
@@ -23,6 +25,7 @@ client.on('ready', () => {
     logGuild = client.guilds.get(archiveGuildId);
     testingChannel = logGuild.channels.get(testingChannelId)
     logMessageChannel = logGuild.channels.get(logMessagesChannelId)
+    initBump(client)
 })
 
 client.on('guildMemberAdd', member => {
@@ -33,6 +36,11 @@ client.on('guildMemberAdd', member => {
 client.on('guildMemberRemove', member => {
     if (member.guild.id !== polGuildId) return
     updateMemberRoles(member);
+})
+
+client.on('roleUpdate', (oldRole, newRole) => {
+    if (oldRole === undefined) return;
+    console.log(chalk.bgRed.bold(`Role Updated: ${oldRole.name}`))
 })
 
 client.on('message', message => {
