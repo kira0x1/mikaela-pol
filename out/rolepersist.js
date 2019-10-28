@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const userController_1 = require("./db/userController");
 const config_1 = require("./config");
-function updateMemberRoles(member) {
+function setMemberRoles(member) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = {
             username: member.user.username, tag: member.user.tag, id: member.id, roles: []
@@ -31,9 +31,9 @@ function updateMemberRoles(member) {
         });
     });
 }
-exports.updateMemberRoles = updateMemberRoles;
+exports.setMemberRoles = setMemberRoles;
 //Used to sync left member with their saved roles
-function setMemberRoles(member) {
+function syncMemberRoles(member) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = {
             username: member.user.username, tag: member.user.tag, id: member.id, roles: []
@@ -54,4 +54,4 @@ function setMemberRoles(member) {
         });
     });
 }
-exports.setMemberRoles = setMemberRoles;
+exports.syncMemberRoles = syncMemberRoles;

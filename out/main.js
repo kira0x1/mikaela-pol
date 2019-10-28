@@ -14,17 +14,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const chalk_1 = __importDefault(require("chalk"));
 const discord_js_1 = require("discord.js");
 const config_1 = require("./config");
-const database_1 = require("./db/database");
 const rolePersist_1 = require("./rolePersist");
 const CommandUtil_1 = require("./util/CommandUtil");
-const bump_1 = require("./bump");
 const client = new discord_js_1.Client();
 var logGuild;
-var testingChannel;
 var logMessageChannel;
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
-        yield database_1.dbinit();
+        // await LoadDB();
         CommandUtil_1.LoadCommands();
         client.login(config_1.token);
     });
@@ -32,19 +29,18 @@ function init() {
 client.on('ready', () => {
     console.log(chalk_1.default.bgCyan.bold(`${client.user.username} online!`));
     logGuild = client.guilds.get(config_1.archiveGuildId);
-    testingChannel = logGuild.channels.get(config_1.testingChannelId);
     logMessageChannel = logGuild.channels.get(config_1.logMessagesChannelId);
-    bump_1.initBump(client);
+    // initBump(client)
 });
 client.on('guildMemberAdd', member => {
     if (member.guild.id !== config_1.polGuildId)
         return;
-    rolePersist_1.setMemberRoles(member);
+    rolePersist_1.syncMemberRoles(member);
 });
 client.on('guildMemberRemove', member => {
     if (member.guild.id !== config_1.polGuildId)
         return;
-    rolePersist_1.updateMemberRoles(member);
+    rolePersist_1.setMemberRoles(member);
 });
 client.on('roleUpdate', (oldRole, newRole) => {
     if (oldRole === undefined)
@@ -92,7 +88,6 @@ function LogMessage(message) {
     message.attachments.map(file => {
         embed.addField("File", file.url, true);
     });
-    // if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
     if (!((logMessageChannel) => logMessageChannel.type === 'text')(logMessageChannel))
         return;
     logMessageChannel.send(embed);

@@ -27,7 +27,7 @@ exports.command = {
 };
 function HelpAll(message) {
     let fields;
-    fields = CommandUtil_1.commands.filter(cmd => CommandUtil_1.CheckPerms(cmd, message)).map(cmd => ({
+    fields = CommandUtil_1.commands.filter(cmd => CommandUtil_1.CheckPerms(cmd, message) && !cmd.hidden).map(cmd => ({
         title: cmd.name,
         content: cmd.description + "\n \u200b",
         inline: false

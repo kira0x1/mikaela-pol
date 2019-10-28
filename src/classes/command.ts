@@ -6,6 +6,7 @@ export default abstract class Command {
     usage?: string | undefined;
     aliases?: Array<string>;
     subCmd?: Array<Command> | undefined;
+    hidden?: boolean | false
     args?: boolean | false;
     cooldown?: number | 3;
     perms?: string[];

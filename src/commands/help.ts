@@ -18,7 +18,7 @@ export const command: Command = {
 function HelpAll(message: Message) {
     let fields: Array<{ title: string; content?: string; inline?: boolean }>;
 
-    fields = commands.filter(cmd => CheckPerms(cmd, message)).map(cmd => ({
+    fields = commands.filter(cmd => CheckPerms(cmd, message) && !cmd.hidden).map(cmd => ({
         title: cmd.name,
         content: cmd.description + "\n \u200b",
         inline: false

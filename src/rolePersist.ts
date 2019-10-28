@@ -3,7 +3,7 @@ import { IUser } from './db/user';
 import { getUser, addUser, updateUser } from './db/userController';
 import { PersistantRoles } from './config';
 
-export async function updateMemberRoles(member: GuildMember) {
+export async function setMemberRoles(member: GuildMember) {
 
     const user: IUser = {
         username: member.user.username, tag: member.user.tag, id: member.id, roles: []
@@ -26,7 +26,7 @@ export async function updateMemberRoles(member: GuildMember) {
 }
 
 //Used to sync left member with their saved roles
-export async function setMemberRoles(member: GuildMember) {
+export async function syncMemberRoles(member: GuildMember) {
     const user: IUser = {
         username: member.user.username, tag: member.user.tag, id: member.id, roles: []
     }

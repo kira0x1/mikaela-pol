@@ -1,21 +1,19 @@
 import chalk from 'chalk';
 import { Client, Guild, GuildChannel, Message, RichEmbed, TextChannel } from 'discord.js';
-import IMessageLog from './classes/IMessageLog';
-import { archiveGuildId, logMessagesChannelId, polGuildId, prefix, testingChannelId, token } from './config';
-import { dbinit as LoadDB } from './db/database';
-import { setMemberRoles, updateMemberRoles } from './rolePersist';
-import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
 import { initBump } from './bump';
-import ms from 'ms';
+import IMessageLog from './classes/IMessageLog';
+import { archiveGuildId, logMessagesChannelId, polGuildId, prefix, token } from './config';
+import { dbinit as LoadDB } from './db/database';
+import { setMemberRoles, syncMemberRoles } from './rolePersist';
+import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
 
 const client = new Client();
 
 var logGuild: Guild
-var testingChannel: TextChannel | GuildChannel
 var logMessageChannel: TextChannel | GuildChannel
 
 async function init() {
-    await LoadDB();
+    // await LoadDB();
     LoadCommands();
     client.login(token);
 }
@@ -23,19 +21,18 @@ async function init() {
 client.on('ready', () => {
     console.log(chalk.bgCyan.bold(`${client.user.username} online!`))
     logGuild = client.guilds.get(archiveGuildId);
-    testingChannel = logGuild.channels.get(testingChannelId)
     logMessageChannel = logGuild.channels.get(logMessagesChannelId)
-    initBump(client)
+    // initBump(client)
 })
 
 client.on('guildMemberAdd', member => {
     if (member.guild.id !== polGuildId) return
-    setMemberRoles(member);
+    syncMemberRoles(member);
 })
 
 client.on('guildMemberRemove', member => {
     if (member.guild.id !== polGuildId) return
-    updateMemberRoles(member);
+    setMemberRoles(member);
 })
 
 client.on('roleUpdate', (oldRole, newRole) => {
@@ -92,7 +89,6 @@ function LogMessage(message: Message) {
         embed.addField("File", file.url, true)
     })
 
-    // if (!((testingChannel): testingChannel is TextChannel => testingChannel.type === 'text')(testingChannel)) return;
     if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
     logMessageChannel.send(embed)
 }
