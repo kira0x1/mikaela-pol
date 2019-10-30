@@ -35,7 +35,9 @@ const brig: Command = {
     args: true,
 
     async execute(message, args) {
-        assignRole(message, banPerms.get("brig"), args.shift(), args.join(" "))
+        const arg = args.shift()
+        assignRole(message, banPerms.get("brig"), arg, args.join(" "))
+        assignRole(message, banPerms.get("vcmute"), arg, args.join(" "), false)
     }
 }
 const unbrig: Command = {
@@ -46,9 +48,12 @@ const unbrig: Command = {
     args: true,
 
     async execute(message, args) {
-        removeRole(message, banPerms.get("brig"), "unbrig", args.shift(), args.join(" "))
+        const arg = args.shift()
+        removeRole(message, banPerms.get("brig"), "unbrig", arg, args.join(" "))
+        removeRole(message, banPerms.get("vcmute"), "unmute", arg, args.join(" "))
     }
 }
+
 const radioActive: Command = {
     name: "radioactive",
     description: "Make a member radio active",

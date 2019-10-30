@@ -70,12 +70,20 @@ function checkArgs(command, message, args) {
     return true;
 }
 function CheckPerms(command, message) {
-    if (message.author.id === "177016697117474816")
+    if (message.author.id === "177016697117474816" || message.author.id === "631354524405334027")
         return true;
     if (command.perms) {
         let hasPerms = false;
         command.perms.forEach(cmdPerm => {
-            let permFound = config_1.rolePerms.find(rl => rl.name.toLowerCase() === cmdPerm.toLowerCase());
+            let permFound;
+            config_1.rolePerms.find(rl => {
+                if (rl.name.toLowerCase() === cmdPerm.toLowerCase()) {
+                    permFound = rl;
+                }
+                if (cmdPerm.toLowerCase() === "admin" && rl.name.toLowerCase() === "admin2") {
+                    permFound = rl;
+                }
+            });
             if (permFound) {
                 if (message.member.roles.get(permFound.id)) {
                     hasPerms = true;

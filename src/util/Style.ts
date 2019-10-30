@@ -20,6 +20,7 @@ export function wrap(content: string[] | string, wrap: string): string {
 export function QuickEmbed(content: string, message: Message) {
     const embed = new RichEmbed().setTitle(content);
     message.channel.send(embed);
+    return embed
 }
 
 export function createEmptyField(inline?: boolean | false) {

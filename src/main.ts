@@ -1,28 +1,25 @@
 import chalk from 'chalk';
-import { Client, Guild, GuildChannel, Message, RichEmbed, TextChannel } from 'discord.js';
+import { Client } from 'discord.js';
 import { initBump } from './bump';
-import IMessageLog from './classes/IMessageLog';
-import { archiveGuildId, logMessagesChannelId, polGuildId, prefix, token } from './config';
+import { polGuildId, prefix, token, logMessagesChannelId, logDeletedMessagesChannelId } from './config';
 import { dbinit as LoadDB } from './db/database';
+import { initLogging, LogMessage, LogEditedMessage } from './util/logging';
 import { setMemberRoles, syncMemberRoles } from './rolePersist';
 import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
+import { CheckWord } from './util/wordmod';
 
 const client = new Client();
 
-var logGuild: Guild
-var logMessageChannel: TextChannel | GuildChannel
-
 async function init() {
-    // await LoadDB();
+    await LoadDB();
     LoadCommands();
     client.login(token);
 }
 
 client.on('ready', () => {
     console.log(chalk.bgCyan.bold(`${client.user.username} online!`))
-    logGuild = client.guilds.get(archiveGuildId);
-    logMessageChannel = logGuild.channels.get(logMessagesChannelId)
-    // initBump(client)
+    initLogging(client);
+    initBump(client)
 })
 
 client.on('guildMemberAdd', member => {
@@ -40,9 +37,23 @@ client.on('roleUpdate', (oldRole, newRole) => {
     console.log(chalk.bgRed.bold(`Role Updated: ${oldRole.name}`))
 })
 
+client.on('messageDelete', message => {
+    LogMessage(message, logDeletedMessagesChannelId);
+})
+
+client.on('messageUpdate', (oldMsg, newMsg) => {
+    if (oldMsg.author.bot) return
+
+    if (newMsg && newMsg.edits) {
+        LogEditedMessage(oldMsg, newMsg)
+    }
+})
+
 client.on('message', message => {
-    if (message.author.id !== client.user.id && message.guild.id === polGuildId)
-        LogMessage(message);
+    if (message.author.id !== client.user.id && message.guild.id === polGuildId) {
+        LogMessage(message, logMessagesChannelId);
+        CheckWord(message)
+    }
 
     if (message.author.bot || !message.content.startsWith(prefix))
         return;
@@ -53,44 +64,5 @@ client.on('message', message => {
 
     ExecuteCommand(commandName, message, args);
 })
-
-function LogMessage(message: Message) {
-
-    let msglog: IMessageLog = {
-        username: message.author.username,
-        tag: message.author.tag,
-        nickname: message.member.displayName,
-        id: message.author.id,
-        content: message.content,
-        timestamp: new Date(message.createdTimestamp).toUTCString(),
-        channel: {
-            name: message.channel.name,
-            id: message.channel.id
-        }
-    }
-
-    let contentString = msglog.content.split(/ +/).join(" ")
-
-    const embed = new RichEmbed()
-        .setThumbnail(message.author.avatarURL)
-        .setTitle(`Tag: ${msglog.tag}`)
-        .setDescription(`user: ${msglog.username}\nid: ${msglog.id}\n\u200b`)
-        .addBlankField(true)
-        .addField("Channel", `**${msglog.channel.name}**\n`)
-        .addBlankField(true)
-
-    if (contentString !== "") { embed.addField("Content", contentString, true) }
-
-    embed.addBlankField(true)
-        .setFooter(`Timestamp: ${msglog.timestamp}`)
-        .setColor("0x#c90c58")
-
-    message.attachments.map(file => {
-        embed.addField("File", file.url, true)
-    })
-
-    if (!((logMessageChannel): logMessageChannel is TextChannel => logMessageChannel.type === 'text')(logMessageChannel)) return;
-    logMessageChannel.send(embed)
-}
 
 init();

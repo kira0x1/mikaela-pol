@@ -1,7 +1,5 @@
-import { User, IUser } from './user';
 import { conn } from './database';
-import { UserSchema } from './user';
-import { Types } from 'mongoose';
+import { IUser, User, UserSchema } from './user';
 
 // - GET - /users # returns all users
 export let allUsers = () => {

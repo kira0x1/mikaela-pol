@@ -40,7 +40,7 @@ export async function HelpCommand(message: Message, args: string[]) {
     //Create embed
     const embed = new RichEmbed().setColor(embedColor);
 
-    embed.fields.push(createField(command.name, command.description + `\n\u200b`));
+    embed.fields.push(createField(command.name, command.description + `\n${command.usage}\u200b`));
 
     if (command.aliases) {
         let aliases = []

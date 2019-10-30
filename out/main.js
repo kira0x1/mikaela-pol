@@ -13,24 +13,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chalk_1 = __importDefault(require("chalk"));
 const discord_js_1 = require("discord.js");
+const bump_1 = require("./bump");
 const config_1 = require("./config");
+const database_1 = require("./db/database");
+const logging_1 = require("./util/logging");
 const rolePersist_1 = require("./rolePersist");
 const CommandUtil_1 = require("./util/CommandUtil");
+const wordmod_1 = require("./util/wordmod");
 const client = new discord_js_1.Client();
-var logGuild;
-var logMessageChannel;
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
-        // await LoadDB();
+        yield database_1.dbinit();
         CommandUtil_1.LoadCommands();
         client.login(config_1.token);
     });
 }
 client.on('ready', () => {
     console.log(chalk_1.default.bgCyan.bold(`${client.user.username} online!`));
-    logGuild = client.guilds.get(config_1.archiveGuildId);
-    logMessageChannel = logGuild.channels.get(config_1.logMessagesChannelId);
-    // initBump(client)
+    logging_1.initLogging(client);
+    bump_1.initBump(client);
 });
 client.on('guildMemberAdd', member => {
     if (member.guild.id !== config_1.polGuildId)
@@ -47,9 +48,21 @@ client.on('roleUpdate', (oldRole, newRole) => {
         return;
     console.log(chalk_1.default.bgRed.bold(`Role Updated: ${oldRole.name}`));
 });
+client.on('messageDelete', message => {
+    logging_1.LogMessage(message, config_1.logDeletedMessagesChannelId);
+});
+client.on('messageUpdate', (oldMsg, newMsg) => {
+    if (oldMsg.author.bot)
+        return;
+    if (newMsg && newMsg.edits) {
+        logging_1.LogEditedMessage(oldMsg, newMsg);
+    }
+});
 client.on('message', message => {
-    if (message.author.id !== client.user.id && message.guild.id === config_1.polGuildId)
-        LogMessage(message);
+    if (message.author.id !== client.user.id && message.guild.id === config_1.polGuildId) {
+        logging_1.LogMessage(message, config_1.logMessagesChannelId);
+        wordmod_1.CheckWord(message);
+    }
     if (message.author.bot || !message.content.startsWith(config_1.prefix))
         return;
     const args = message.content.slice(config_1.prefix.length).split(/ +/);
@@ -58,38 +71,4 @@ client.on('message', message => {
         return;
     CommandUtil_1.ExecuteCommand(commandName, message, args);
 });
-function LogMessage(message) {
-    let msglog = {
-        username: message.author.username,
-        tag: message.author.tag,
-        nickname: message.member.displayName,
-        id: message.author.id,
-        content: message.content,
-        timestamp: new Date(message.createdTimestamp).toUTCString(),
-        channel: {
-            name: message.channel.name,
-            id: message.channel.id
-        }
-    };
-    let contentString = msglog.content.split(/ +/).join(" ");
-    const embed = new discord_js_1.RichEmbed()
-        .setThumbnail(message.author.avatarURL)
-        .setTitle(`Tag: ${msglog.tag}`)
-        .setDescription(`user: ${msglog.username}\nid: ${msglog.id}\n\u200b`)
-        .addBlankField(true)
-        .addField("Channel", `**${msglog.channel.name}**\n`)
-        .addBlankField(true);
-    if (contentString !== "") {
-        embed.addField("Content", contentString, true);
-    }
-    embed.addBlankField(true)
-        .setFooter(`Timestamp: ${msglog.timestamp}`)
-        .setColor("0x#c90c58");
-    message.attachments.map(file => {
-        embed.addField("File", file.url, true);
-    });
-    if (!((logMessageChannel) => logMessageChannel.type === 'text')(logMessageChannel))
-        return;
-    logMessageChannel.send(embed);
-}
 init();

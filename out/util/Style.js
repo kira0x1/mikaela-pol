@@ -20,6 +20,7 @@ exports.wrap = wrap;
 function QuickEmbed(content, message) {
     const embed = new discord_js_1.RichEmbed().setTitle(content);
     message.channel.send(embed);
+    return embed;
 }
 exports.QuickEmbed = QuickEmbed;
 function createEmptyField(inline) {

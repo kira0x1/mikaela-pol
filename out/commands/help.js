@@ -46,7 +46,7 @@ function HelpCommand(message, args) {
             return;
         //Create embed
         const embed = new discord_js_1.RichEmbed().setColor(Style_1.embedColor);
-        embed.fields.push(Style_1.createField(command.name, command.description + `\n\u200b`));
+        embed.fields.push(Style_1.createField(command.name, command.description + `\n${command.usage}\u200b`));
         if (command.aliases) {
             let aliases = [];
             command.aliases.map(al => aliases.push(al));

@@ -8,9 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const user_1 = require("./user");
 const database_1 = require("./database");
-const user_2 = require("./user");
+const user_1 = require("./user");
 // - GET - /users # returns all users
 exports.allUsers = () => {
     return new Promise(function (resolve, reject) {
@@ -27,7 +26,7 @@ function getUser(tag) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise(function (resolve, reject) {
             return __awaiter(this, void 0, void 0, function* () {
-                var userModel = yield database_1.conn.model("users", user_2.UserSchema);
+                var userModel = yield database_1.conn.model("users", user_1.UserSchema);
                 yield userModel.findOne({ tag: tag }, (err, user) => {
                     if (err || user === null)
                         reject(err);
@@ -44,7 +43,7 @@ function addUser(user) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise(function (resolve, reject) {
             return __awaiter(this, void 0, void 0, function* () {
-                var userModel = yield database_1.conn.model("users", user_2.UserSchema);
+                var userModel = yield database_1.conn.model("users", user_1.UserSchema);
                 yield userModel.create({ username: user.username, id: user.id, tag: user.tag, roles: user.roles }).then(user => {
                     resolve(user);
                 }).catch(err => reject(err));
@@ -57,7 +56,7 @@ function deleteUser(tag) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise(function (resolve, reject) {
             return __awaiter(this, void 0, void 0, function* () {
-                var userModel = yield database_1.conn.model("users", user_2.UserSchema);
+                var userModel = yield database_1.conn.model("users", user_1.UserSchema);
                 userModel.deleteOne({ tag: tag }, (err) => {
                     if (err) {
                         reject(err);
@@ -75,7 +74,7 @@ function updateUser(tag, user) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise(function (resolve, reject) {
             return __awaiter(this, void 0, void 0, function* () {
-                var userModel = yield database_1.conn.model("users", user_2.UserSchema);
+                var userModel = yield database_1.conn.model("users", user_1.UserSchema);
                 userModel.findOneAndUpdate(tag, user, (err, res) => {
                     if (err) {
                         reject(err);

@@ -35,13 +35,12 @@ export async function syncMemberRoles(member: GuildMember) {
         console.log(`found existing user.. ${user.tag}`)
         const roles: Collection<string, Role> = new Collection()
 
-        if (!(userFound instanceof GuildMember)) return
-
         userFound.roles.map(rl => {
+            console.log(`has roles: ${rl.name}`)
             roles.set(rl.id, member.guild.roles.get(rl.id))
         })
 
-        member.setRoles(roles)
+        member.addRoles(roles)
     }).catch(err => {
         member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
         console.log(`user ${user.tag} does not exist, creating user now`)

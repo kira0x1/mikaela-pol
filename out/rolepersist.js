@@ -41,12 +41,11 @@ function syncMemberRoles(member) {
         userController_1.getUser(user.tag).then(userFound => {
             console.log(`found existing user.. ${user.tag}`);
             const roles = new discord_js_1.Collection();
-            if (!(userFound instanceof discord_js_1.GuildMember))
-                return;
             userFound.roles.map(rl => {
+                console.log(`has roles: ${rl.name}`);
                 roles.set(rl.id, member.guild.roles.get(rl.id));
             });
-            member.setRoles(roles);
+            member.addRoles(roles);
         }).catch(err => {
             member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }));
             console.log(`user ${user.tag} does not exist, creating user now`);

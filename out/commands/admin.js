@@ -47,7 +47,9 @@ const brig = {
     args: true,
     execute(message, args) {
         return __awaiter(this, void 0, void 0, function* () {
-            mod_1.assignRole(message, config_1.banPerms.get("brig"), args.shift(), args.join(" "));
+            const arg = args.shift();
+            mod_1.assignRole(message, config_1.banPerms.get("brig"), arg, args.join(" "));
+            mod_1.assignRole(message, config_1.banPerms.get("vcmute"), arg, args.join(" "), false);
         });
     }
 };
@@ -59,7 +61,9 @@ const unbrig = {
     args: true,
     execute(message, args) {
         return __awaiter(this, void 0, void 0, function* () {
-            mod_1.removeRole(message, config_1.banPerms.get("brig"), "unbrig", args.shift(), args.join(" "));
+            const arg = args.shift();
+            mod_1.removeRole(message, config_1.banPerms.get("brig"), "unbrig", arg, args.join(" "));
+            mod_1.removeRole(message, config_1.banPerms.get("vcmute"), "unmute", arg, args.join(" "));
         });
     }
 };
