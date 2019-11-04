@@ -32,11 +32,6 @@ client.on('guildMemberRemove', member => {
     setMemberRoles(member);
 })
 
-client.on('roleUpdate', (oldRole, newRole) => {
-    if (oldRole === undefined) return;
-    console.log(chalk.bgRed.bold(`Role Updated: ${oldRole.name}`))
-})
-
 client.on('messageDelete', message => {
     LogMessage(message, logDeletedMessagesChannelId);
 })

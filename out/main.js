@@ -43,11 +43,6 @@ client.on('guildMemberRemove', member => {
         return;
     rolePersist_1.setMemberRoles(member);
 });
-client.on('roleUpdate', (oldRole, newRole) => {
-    if (oldRole === undefined)
-        return;
-    console.log(chalk_1.default.bgRed.bold(`Role Updated: ${oldRole.name}`));
-});
 client.on('messageDelete', message => {
     logging_1.LogMessage(message, config_1.logDeletedMessagesChannelId);
 });
