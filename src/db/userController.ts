@@ -12,7 +12,7 @@ export let allUsers = () => {
 }
 
 // - GET - /user/{1} # returns user with id 1
-export async function getUser(tag: string) {
+export async function getUser(tag: string): Promise<IUser | undefined> {
     return new Promise(async function (resolve, reject) {
         var userModel = await conn.model("users", UserSchema)
         await userModel.findOne({ tag: tag }, (err: any, user: any) => {

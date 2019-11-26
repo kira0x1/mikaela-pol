@@ -20,6 +20,7 @@ const logging_1 = require("./util/logging");
 const rolePersist_1 = require("./rolePersist");
 const CommandUtil_1 = require("./util/CommandUtil");
 const wordmod_1 = require("./util/wordmod");
+const SyncRoles_1 = require("./util/SyncRoles");
 const client = new discord_js_1.Client();
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -32,6 +33,7 @@ client.on('ready', () => {
     console.log(chalk_1.default.bgCyan.bold(`${client.user.username} online!`));
     logging_1.initLogging(client);
     bump_1.initBump(client);
+    SyncRoles_1.SyncRoles(client);
 });
 client.on('guildMemberAdd', member => {
     if (member.guild.id !== config_1.polGuildId)

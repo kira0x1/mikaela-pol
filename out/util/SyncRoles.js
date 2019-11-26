@@ -1,10 +1,20 @@
-import chalk from 'chalk';
-import { Message, RichEmbed, ReactionCollector, MessageReaction, User, MessageEmbedField } from 'discord.js';
-import Command from '../classes/command';
-import { embedColor } from '../util/Style';
-
-
-const customRoles = [
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const chalk_1 = __importDefault(require("chalk"));
+const config_1 = require("../config");
+const channelId = "628565019508080660";
+exports.customRoles = [
     {
         "title": "Systems of Government",
         "roles": [
@@ -21,7 +31,6 @@ const customRoles = [
             { name: "Pacifism", id: "640115320316624896", emoji: "🕊", emojiName: "loud_sound" },
         ]
     },
-
     {
         "title": "Forgien Affairs",
         "roles": [
@@ -68,6 +77,9 @@ const customRoles = [
             { name: "Feminism", id: "640268730399719444", emoji: "🎓" },
             { name: "Antifeminism", id: "640268944959078404", emoji: "🦀" },
             { name: "Family Values", id: "640268945940807730", emoji: "👪" },
+            { name: "Pro Trans Only 🇹", id: "641329711405989889", emoji: "🇹" },
+            { name: "Vegan 🥕", id: "641329712735453205", emoji: "🥕" },
+            { name: "Omnivore 💀", id: "641329714065309726", emoji: "💀" },
         ]
     },
     {
@@ -121,98 +133,91 @@ const customRoles = [
             { name: "Agnostic", id: "640296445320233010", emoji: "❓" },
         ]
     }
-]
-
-
-export const command: Command = {
-    name: 'customRoles',
-    aliases: ['croles'],
-    description: "Setup for custom roles",
-    perms: ["admin"],
-    hidden: true,
-    cooldown: 1,
-
-    async execute(message, args) {
-        for (let i = 0; i < customRoles.length; i++) {
-            const titleEmbed = new RichEmbed()
-                .setColor("0xffffff")
-            titleEmbed.setTitle(customRoles[i].title)
-
-            const embed = new RichEmbed()
-                .setColor("0x1c1c1c")
-
-            customRoles[i].roles.map(role => {
-                embed.addField(`${role.name} ${role.emoji}`, `\u200b`)
-            })
-
-            message.channel.send(titleEmbed)
-            message.channel.send(embed).then(msg => {
-                for (let j = 0; j < customRoles[i].roles.length; j++) {
-                    addReaction(msg, customRoles[i].roles[j].emoji)
+];
+function SyncRoles(client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const guild = client.guilds.get(config_1.polGuildId);
+        const channel = guild.channels.get(channelId);
+        if (!((channel) => channel.type === "text")(channel))
+            return console.log("Couldnt find channel");
+        channel.fetchMessages({ limit: 50 }).then(messages => {
+            messages.map(msg => {
+                if (msg.reactions.size > 0) {
+                    msg.reactions.map(rc => {
+                        syncEmoji(msg, rc.emoji.name);
+                    });
                 }
-            })
-        }
-
-        async function addReaction(msg: Message, emoji) {
-            await msg.react(emoji)
-
-            const filter = (reaction: MessageReaction, user: User) => {
-                return reaction.emoji.name === emoji && !user.bot;
-            };
-
-            const collector = msg.createReactionCollector(filter)
-
-            await collector.on("collect", async (reaction) => {
-                const user = reaction.users.last()
-                let roleId = undefined
-
-                for (let i = 0; i < customRoles.length; i++) {
-                    for (let j = 0; j < customRoles[i].roles.length; j++) {
-                        let role = customRoles[i].roles[j]
-                        if (role.emoji === reaction.emoji.name) {
-                            roleId = role.id;
-                            break;
-                        }
+            });
+        });
+        client.on("messageReactionRemove", (reaction, user) => {
+            let isEmoji = false;
+            for (let i = 0; i < exports.customRoles.length; i++) {
+                if (exports.customRoles[i].roles.find(rl => rl.emoji === reaction.emoji.name)) {
+                    isEmoji = true;
+                    break;
+                }
+            }
+            if (!isEmoji)
+                return;
+            if (user.bot)
+                return;
+            const member = guild.members.get(user.id);
+            let crole;
+            for (let i = 0; i < exports.customRoles.length; i++) {
+                exports.customRoles[i].roles.find(cr => {
+                    if (cr.emoji === reaction.emoji.name) {
+                        crole = cr.id;
+                    }
+                });
+            }
+            const role = guild.roles.find(rl => rl.id === crole);
+            if (!member || !role)
+                return console.log("er");
+            const rolesFound = [];
+            member.roles.map(role => {
+                exports.customRoles.map(section => {
+                    if (section.roles.find(r => r.id === role.id)) {
+                        rolesFound.push(role);
+                    }
+                });
+            });
+            if (member.roles.has(role.id)) {
+                member.removeRole(role);
+            }
+        });
+    });
+}
+exports.SyncRoles = SyncRoles;
+function syncEmoji(msg, emoji) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const filter = (reaction, user) => {
+            let isEmoji = false;
+            for (let i = 0; i < exports.customRoles.length; i++) {
+                if (exports.customRoles[i].roles.find(rl => rl.emoji === reaction.emoji.name)) {
+                    isEmoji = true;
+                    break;
+                }
+            }
+            return reaction.emoji.name === emoji && !user.bot && isEmoji;
+        };
+        const collector = msg.createReactionCollector(filter);
+        collector.on("collect", (reaction) => __awaiter(this, void 0, void 0, function* () {
+            const user = reaction.users.last();
+            let roleId = undefined;
+            for (let i = 0; i < exports.customRoles.length; i++) {
+                for (let j = 0; j < exports.customRoles[i].roles.length; j++) {
+                    let role = exports.customRoles[i].roles[j];
+                    if (role.emoji === reaction.emoji.name) {
+                        roleId = role.id;
+                        break;
                     }
                 }
-
-                const member = msg.guild.members.get(user.id)
-
-                if (!roleId) return console.log(chalk.bgRed.bold("Couldnt find emoji"))
-
-                if (member.roles.find(rl => rl.id === roleId)) {
-                    // console.log(chalk.bgMagenta.bold(`Removed role from user ${user.username}`))
-                    member.removeRole(roleId)
-                } else {
-                    // console.log(chalk.bgGreen.bold(`Added role from user ${user.username}`))
-                    msg.guild.members.get(user.id).addRole(roleId)
-                }
-            })
-        }
-
-        // async function addCustomReaction(msg: Message, reactionId) {
-        //     const emoji = msg.guild.emojis.get(reactionId)
-
-        //     const filter = (reaction: MessageReaction, user: User) => {
-        //         return reaction.emoji.name === emoji.name && !user.bot;
-        //     };
-
-        //     msg.react(emoji)
-
-        //     const collector = msg.createReactionCollector(filter)
-
-        //     collector.on("collect", async (reaction, ReactionCollector) => {
-        //         const user = reaction.users.last()
-        //         const roleId = customRoles.find(cr => cr.reactionId === reaction.emoji.id).id
-        //         const member = msg.guild.members.get(user.id)
-        //         if (member.roles.find(rl => rl.id === roleId)) {
-        //             // console.log(chalk.bgMagenta.bold(`Removed role from user ${user.username}`))
-        //             member.removeRole(roleId)
-        //         } else {
-        //             // console.log(chalk.bgGreen.bold(`Added role from user ${user.username}`))
-        //             msg.guild.members.get(user.id).addRole(roleId)
-        //         }
-        //     })
-        // }
-    }
+            }
+            const member = msg.guild.members.get(user.id);
+            if (!roleId)
+                return console.log(chalk_1.default.bgRed.bold("Couldnt find emoji"));
+            // console.log(chalk.bgGreen.bold(`Added role from user ${user.username}`))
+            msg.guild.members.get(user.id).addRole(roleId);
+        }));
+    });
 }

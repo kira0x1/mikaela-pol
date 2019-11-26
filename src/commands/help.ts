@@ -40,22 +40,35 @@ export async function HelpCommand(message: Message, args: string[]) {
     //Create embed
     const embed = new RichEmbed().setColor(embedColor);
 
-    embed.fields.push(createField(command.name, command.description + `\n${command.usage}\u200b`));
+    let helpString = "```"
+
+
+    helpString += "\nCommand: " + command.name
+    helpString += `\nDescription: ${command.description}`
+
+
+    // embed.fields.push(createField(command.name, command.description + `\n${command.usage}\u200b`));
 
     if (command.aliases) {
         let aliases = []
         command.aliases.map(al => aliases.push(al))
-        embed.addField("Aliases", aliases.join(', '), false)
+        helpString += "\n\nAliases" + "\n" + aliases.join(', ')
     }
 
+    helpString += "\n\n"
 
     //Check if command has subcommands
     if (command.subCmd) {
-        embed.fields.push(createEmptyField(true))
-        InsertSubCommands(embed, command.subCmd);
+        command.subCmd.map(sc => {
+            helpString += sc.name + "\n"
+        })
+        // embed.fields.push(createEmptyField(true))
+        // InsertSubCommands(embed, command.subCmd);
     }
 
-    message.channel.send(embed);
+    helpString += "\n```"
+    message.channel.send(helpString)
+    // message.channel.send(embed);
 }
 
 function InsertSubCommands(embed: RichEmbed, subCommands: Command[]) {

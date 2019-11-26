@@ -38,7 +38,8 @@ function syncMemberRoles(member) {
         const user = {
             username: member.user.username, tag: member.user.tag, id: member.id, roles: []
         };
-        userController_1.getUser(user.tag).then(userFound => {
+        const userFound = yield userController_1.getUser(user.tag);
+        if (userFound) {
             console.log(`found existing user.. ${user.tag}`);
             const roles = new discord_js_1.Collection();
             userFound.roles.map(rl => {
@@ -46,11 +47,12 @@ function syncMemberRoles(member) {
                 roles.set(rl.id, member.guild.roles.get(rl.id));
             });
             member.addRoles(roles);
-        }).catch(err => {
+        }
+        else {
             member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }));
             console.log(`user ${user.tag} does not exist, creating user now`);
             userController_1.addUser(user);
-        });
+        }
     });
 }
 exports.syncMemberRoles = syncMemberRoles;

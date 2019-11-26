@@ -63,7 +63,7 @@ const unbrig = {
         return __awaiter(this, void 0, void 0, function* () {
             const arg = args.shift();
             mod_1.removeRole(message, config_1.banPerms.get("brig"), "unbrig", arg, args.join(" "));
-            mod_1.removeRole(message, config_1.banPerms.get("vcmute"), "unmute", arg, args.join(" "));
+            mod_1.removeRole(message, config_1.banPerms.get("vcmute"), "unmute", arg, args.join(" "), false);
         });
     }
 };

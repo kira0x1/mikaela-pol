@@ -50,7 +50,7 @@ const unbrig: Command = {
     async execute(message, args) {
         const arg = args.shift()
         removeRole(message, banPerms.get("brig"), "unbrig", arg, args.join(" "))
-        removeRole(message, banPerms.get("vcmute"), "unmute", arg, args.join(" "))
+        removeRole(message, banPerms.get("vcmute"), "unmute", arg, args.join(" "), false)
     }
 }
 

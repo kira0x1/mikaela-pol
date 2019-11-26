@@ -7,6 +7,7 @@ import { initLogging, LogMessage, LogEditedMessage } from './util/logging';
 import { setMemberRoles, syncMemberRoles } from './rolePersist';
 import { ExecuteCommand, LoadCommands } from './util/CommandUtil';
 import { CheckWord } from './util/wordmod';
+import { SyncRoles } from './util/SyncRoles';
 
 const client = new Client();
 
@@ -20,6 +21,7 @@ client.on('ready', () => {
     console.log(chalk.bgCyan.bold(`${client.user.username} online!`))
     initLogging(client);
     initBump(client)
+    SyncRoles(client);
 })
 
 client.on('guildMemberAdd', member => {

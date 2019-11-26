@@ -31,7 +31,8 @@ export async function syncMemberRoles(member: GuildMember) {
         username: member.user.username, tag: member.user.tag, id: member.id, roles: []
     }
 
-    getUser(user.tag).then(userFound => {
+    const userFound = await getUser(user.tag)
+    if (userFound) {
         console.log(`found existing user.. ${user.tag}`)
         const roles: Collection<string, Role> = new Collection()
 
@@ -41,9 +42,9 @@ export async function syncMemberRoles(member: GuildMember) {
         })
 
         member.addRoles(roles)
-    }).catch(err => {
+    } else {
         member.roles.map(rl => user.roles.push({ name: rl.name, id: rl.id }))
         console.log(`user ${user.tag} does not exist, creating user now`)
         addUser(user)
-    })
+    }
 }
